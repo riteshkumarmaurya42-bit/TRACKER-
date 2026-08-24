@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRACKER — Minecraft Bedrock + BGMI</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #21262d;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --green: #3fb950;
+      --yellow: #d29922;
+      --red: #f85149;
+      --blue: #58a6ff;
+      --purple: #bc8cff;
+      --orange: #f0883e;
+      --mc-green: #55aa55;
+      --bgmi-orange: #ff6600;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    header {
+      text-align: center;
+      padding: 40px 20px 30px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      font-size: 2.2em;
+      background: linear-gradient(135deg, var(--mc-green), var(--bgmi-orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    header p { color: var(--text-muted); font-size: 1.05em; }
+
+    .last-updated {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 4px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.85em;
+      color: var(--text-muted);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+
+    .tab {
+      padding: 10px 24px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      font-size: 1em;
+      font-weight: 600;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--text); border-bottom-color: var(--blue); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+
+    .card:hover { border-color: var(--text-muted); }
+
+    .card h3 {
+      font-size: 1.1em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card h3 .icon { font-size: 1.3em; }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat-row:last-child { border-bottom: none; }
+
+    .stat-label { color: var(--text-muted); }
+    .stat-value { font-weight: 600; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      font-weight: 600;
+    }
+
+    .badge-green { background: rgba(63, 185, 80, 0.15); color: var(--green); }
+    .badge-yellow { background: rgba(210, 153, 34, 0.15); color: var(--yellow); }
+    .badge-red { background: rgba(248, 81, 73, 0.15); color: var(--red); }
+    .badge-blue { background: rgba(88, 166, 255, 0.15); color: var(--blue); }
+    .badge-purple { background: rgba(188, 140, 255, 0.15); color: var(--purple); }
+    .badge-orange { background: rgba(240, 136, 62, 0.15); color: var(--orange); }
+
+    .version-list { list-style: none; }
+
+    .version-item {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .version-item:last-child { border-bottom: none; }
+
+    .version-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .version-number { font-weight: 700; font-size: 1.05em; }
+    .version-date { color: var(--text-muted); font-size: 0.85em; }
+
+    .changes-list {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .changes-list li {
+      padding: 3px 0;
+      color: var(--text-muted);
+      font-size: 0.9em;
+    }
+
+    .changes-list li::before {
+      content: "•";
+      color: var(--green);
+      margin-right: 8px;
+    }
+
+    .weapon-tier {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      line-height: 28px;
+      text-align: center;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.85em;
+    }
+
+    .tier-S { background: rgba(248, 81, 73, 0.2); color: var(--red); }
+    .tier-A { background: rgba(240, 136, 62, 0.2); color: var(--orange); }
+    .tier-B { background: rgba(210, 153, 34, 0.2); color: var(--yellow); }
+
+    .weapon-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .weapon-row:last-child { border-bottom: none; }
+
+    .weapon-name { font-weight: 600; flex: 1; }
+    .weapon-type { color: var(--text-muted); font-size: 0.85em; width: 70px; }
+    .weapon-pick { color: var(--text-muted); font-size: 0.85em; text-align: right; width: 50px; }
+
+    .map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+
+    .map-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .map-card .map-name { font-weight: 600; margin-bottom: 4px; }
+    .map-card .map-size { color: var(--text-muted); font-size: 0.85em; }
+    .map-card .map-players { color: var(--text-muted); font-size: 0.8em; }
+
+    .event-item {
+      padding: 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    .event-item:last-child { margin-bottom: 0; }
+    .event-name { font-weight: 600; margin-bottom: 4px; }
+    .event-dates { color: var(--text-muted); font-size: 0.85em; }
+    .event-cost { color: var(--yellow); font-size: 0.85em; margin-top: 4px; }
+
+    .esports-card {
+      background: linear-gradient(135deg, rgba(88, 166, 255, 0.08), rgba(188, 140, 255, 0.08));
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .esports-card h3 { margin-bottom: 12px; }
+
+    .tier-rewards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 8px;
+    }
+
+    .tier-reward {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--surface2);
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+
+    .tier-name { font-weight: 600; }
+    .tier-prize { color: var(--text-muted); font-size: 0.85em; }
+
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: var(--text-muted);
+    }
+
+    .loading .spinner {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer {
+      text-align: center;
+      padding: 30px 20px;
+      margin-top: 40px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.85em;
+    }
+
+    footer a { color: var(--blue); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) {
+      .grid { grid-template-columns: 1fr; }
+      header h1 { font-size: 1.6em; }
+      .tab { padding: 8px 14px; font-size: 0.9em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎮 TRACKER</h1>
+      <p>Minecraft Bedrock Edition + BGMI — Live Dashboard</p>
+      <div class="last-updated" id="lastUpdated">Loading...</div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('minecraft')">⛏️ Minecraft Bedrock</button>
+      <button class="tab" onclick="switchTab('bgmi')">🔫 BGMI</button>
+    </div>
+
+    <!-- MINECRAFT TAB -->
+    <div id="minecraft" class="tab-content active">
+      <div class="loading" id="mcLoading">
+        <div class="spinner"></div>
+        <div>Loading Minecraft data...</div>
+      </div>
+      <div id="mcContent" style="display:none;">
+        <div class="grid">
+          <!-- Version Info -->
+          <div class="card">
+            <h3><span class="icon">📦</span> Current Version</h3>
+            <div class="stat-row">
+              <span class="stat-label">Version</span>
+              <span class="stat-value" id="mcVersion">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Status</span>
+              <span id="mcStatus">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Platforms</span>
+              <span class="stat-value" id="mcPlatforms">—</span>
+            </div>
+          </div>
+
+          <!-- Upcoming -->
+          <div class="card">
+            <h3><span class="icon">🔮</span> Upcoming</h3>
+            <div class="stat-row">
+              <span class="stat-label">Next Version</span>
+              <span class="stat-value" id="mcNextVersion">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Expected</span>
+              <span class="stat-value" id="mcNextDate">—</span>
+            </div>
+            <div id="mcUpcomingFeatures"></div>
+          </div>
+
+          <!-- Marketplace Stats -->
+          <div class="card">
+            <h3><span class="icon">🛒</span> Marketplace</h3>
+            <div class="stat-row">
+              <span class="stat-label">Add-ons</span>
+              <span class="stat-value" id="mcAddons">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Skin Packs</span>
+              <span class="stat-value" id="mcSkins">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Worlds</span>
+              <span class="stat-value" id="mcWorlds">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Featured This Week</span>
+              <span class="stat-value" id="mcFeatured">—</span>
+            </div>
+          </div>
+
+          <!-- Service Status -->
+          <div class="card">
+            <h3><span class="icon">🟢</span> Service Status</h3>
+            <div id="mcServices"></div>
+          </div>
+        </div>
+
+        <!-- Version History -->
+        <div class="card" style="margin-top:20px;">
+          <h3><span class="icon">📜</span> Version History</h3>
+          <ul class="version-list" id="mcVersions"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- BGMI TAB -->
+    <div id="bgmi" class="tab-content">
+      <div class="loading" id="bgmiLoading">
+        <div class="spinner"></div>
+        <div>Loading BGMI data...</div>
+      </div>
+      <div id="bgmiContent" style="display:none;">
+        <div class="grid">
+          <!-- Season Info -->
+          <div class="card">
+            <h3><span class="icon">🏆</span> Current Season</h3>
+            <div class="stat-row">
+              <span class="stat-label">Season</span>
+              <span class="stat-value" id="bgmiSeason">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Name</span>
+              <span class="stat-value" id="bgmiSeasonName">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Version</span>
+              <span class="stat-value" id="bgmiVersion">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Ends</span>
+              <span class="stat-value" id="bgmiSeasonEnd">—</span>
+            </div>
+          </div>
+
+          <!-- Esports -->
+          <div class="card">
+            <h3><span class="icon">🏟️</span> Esports</h3>
+            <div id="bgmiEsports"></div>
+          </div>
+
+          <!-- Server Status -->
+          <div class="card">
+            <h3><span class="icon">📡</span> Server Status</h3>
+            <div id="bgmiServers"></div>
+          </div>
+        </div>
+
+        <!-- Weapon Meta -->
+        <div class="card" style="margin-top:20px;">
+          <h3><span class="icon">🔫</span> Weapon Meta</h3>
+          <div id="bgmiWeapons"></div>
+        </div>
+
+        <!-- Maps -->
+        <div class="card" style="margin-top:20px;">
+          <h3><span class="icon">🗺️</span> Map Rotation</h3>
+          <div class="map-grid" id="bgmiMaps"></div>
+        </div>
+
+        <!-- Modes -->
+        <div class="card" style="margin-top:20px;">
+          <h3><span class="icon">🎯</span> Game Modes</h3>
+          <div id="bgmiModes"></div>
+        </div>
+
+        <!-- Events -->
+        <div class="card" style="margin-top:20px;">
+          <h3><span class="icon">🎁</span> Active Events & Crates</h3>
+          <div id="bgmiEvents"></div>
+        </div>
+
+        <!-- Tier Rewards -->
+        <div class="card" style="margin-top:20px;">
+          <h3><span class="icon">🎖️</span> Season Tier Rewards</h3>
+          <div class="tier-rewards" id="bgmiTiers"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>TRACKER- &mdash; Auto-updated via <a href="https://github.com/riteshkumarmaurya42-bit/TRACKER-/actions">GitHub Actions</a></p>
+    <p style="margin-top:4px;">Data sources: Minecraft Wiki &bull; Mojang Status API &bull; BGMI Official</p>
+  </footer>
+
+  <script>
+    let mcData = null, bgmiData = null;
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+      document.getElementById(tab).classList.add('active');
+    }
+
+    function statusBadge(status) {
+      const map = { green: 'badge-green', yellow: 'badge-yellow', red: 'badge-red', stable: 'badge-green', active: 'badge-green', limited_time: 'badge-yellow' };
+      return `<span class="badge ${map[status] || 'badge-blue'}">${status}</span>`;
+    }
+
+    function formatNumber(n) {
+      return n ? n.toLocaleString() : '—';
+    }
+
+    function renderMinecraft(data) {
+      mcData = data;
+      document.getElementById('mcLoading').style.display = 'none';
+      document.getElementById('mcContent').style.display = 'block';
+
+      document.getElementById('lastUpdated').textContent = `Last updated: ${new Date(data.last_updated).toLocaleString()}`;
+      document.getElementById('mcVersion').textContent = data.current_version || '—';
+
+      const latest = data.versions?.[0];
+      document.getElementById('mcStatus').innerHTML = latest ? statusBadge(latest.status) : '—';
+      document.getElementById('mcPlatforms').textContent = data.platforms?.length ? `${data.platforms.length} platforms` : '—';
+
+      if (data.upcoming) {
+        document.getElementById('mcNextVersion').textContent = data.upcoming.version || '—';
+        document.getElementById('mcNextDate').textContent = data.upcoming.expected_date || '—';
+        if (data.upcoming.features_preview) {
+          document.getElementById('mcUpcomingFeatures').innerHTML = '<ul class="changes-list">' +
+            data.upcoming.features_preview.map(f => `<li>${f}</li>`).join('') + '</ul>';
+        }
+      }
+
+      if (data.marketplace_stats) {
+        const ms = data.marketplace_stats;
+        document.getElementById('mcAddons').textContent = formatNumber(ms.total_addons);
+        document.getElementById('mcSkins').textContent = formatNumber(ms.total_skin_packs);
+        document.getElementById('mcWorlds').textContent = formatNumber(ms.total_worlds);
+        document.getElementById('mcFeatured').textContent = ms.featured_this_week || '—';
+      }
+
+      if (data.service_status) {
+        document.getElementById('mcServices').innerHTML = Object.entries(data.service_status).map(([name, status]) =>
+          `<div class="stat-row"><span class="stat-label">${name}</span>${statusBadge(status)}</div>`
+        ).join('');
+      }
+
+      if (data.versions) {
+        document.getElementById('mcVersions').innerHTML = data.versions.map(v => `
+          <li class="version-item">
+            <div class="version-header">
+              <span class="version-number">v${v.version} ${statusBadge(v.status)}</span>
+              <span class="version-date">${v.release_date}</span>
+            </div>
+            <ul class="changes-list">${(v.changes || []).map(c => `<li>${c}</li>`).join('')}</ul>
+          </li>
+        `).join('');
+      }
+    }
+
+    function renderBGMI(data) {
+      bgmiData = data;
+      document.getElementById('bgmiLoading').style.display = 'none';
+      document.getElementById('bgmiContent').style.display = 'block';
+
+      if (!mcData) {
+        document.getElementById('lastUpdated').textContent = `Last updated: ${new Date(data.last_updated).toLocaleString()}`;
+      }
+
+      document.getElementById('bgmiVersion').textContent = data.current_version || '—';
+
+      if (data.season) {
+        document.getElementById('bgmiSeason').textContent = `S${data.season.number}`;
+        document.getElementById('bgmiSeasonName').textContent = data.season.name || '—';
+        document.getElementById('bgmiSeasonEnd').textContent = data.season.end_date || '—';
+
+        if (data.season.tier_rewards) {
+          document.getElementById('bgmiTiers').innerHTML = data.season.tier_rewards.map(t =>
+            `<div class="tier-reward"><span class="tier-name">${t.tier}</span><span class="tier-prize">${t.reward}</span></div>`
+          ).join('');
+        }
+      }
+
+      if (data.esports) {
+        let html = '';
+        if (data.esports.upcoming_tournament) {
+          const t = data.esports.upcoming_tournament;
+          html += `<div class="esports-card">
+            <h3>📅 ${t.name}</h3>
+            <div class="stat-row"><span class="stat-label">Date</span><span class="stat-value">${t.date}</span></div>
+            <div class="stat-row"><span class="stat-label">Venue</span><span class="stat-value">${t.venue}</span></div>
+            <div class="stat-row"><span class="stat-label">Prize Pool</span><span class="stat-value" style="color:var(--yellow)">${t.prize_pool}</span></div>
+            <div class="stat-row"><span class="stat-label">Teams</span><span class="stat-value">${t.teams}</span></div>
+          </div>`;
+        }
+        if (data.esports.recent_results) {
+          const r = data.esports.recent_results;
+          html += `<div class="stat-row"><span class="stat-label">Last Winner</span><span class="stat-value">${r.winner}</span></div>`;
+          html += `<div class="stat-row"><span class="stat-label">Runner-up</span><span class="stat-value">${r.runner_up}</span></div>`;
+          html += `<div class="stat-row"><span class="stat-label">MVP</span><span class="stat-value">${r.mvp}</span></div>`;
+        }
+        document.getElementById('bgmiEsports').innerHTML = html;
+      }
+
+      if (data.server_status) {
+        document.getElementById('bgmiServers').innerHTML = Object.entries(data.server_status).map(([name, status]) =>
+          `<div class="stat-row"><span class="stat-label">${name.replace(/_/g, ' ')}</span>${statusBadge(status === 'reachable' ? 'green' : status === 'unreachable' ? 'red' : status)}</div>`
+        ).join('');
+      }
+
+      if (data.weapon_meta?.top_weapons) {
+        document.getElementById('bgmiWeapons').innerHTML = data.weapon_meta.top_weapons.map(w => `
+          <div class="weapon-row">
+            <span class="weapon-tier tier-${w.tier}">${w.tier}</span>
+            <span class="weapon-name">${w.name}</span>
+            <span class="weapon-type">${w.type}</span>
+            <span class="weapon-pick">${w.pick_rate}</span>
+          </div>
+        `).join('');
+      }
+
+      if (data.maps) {
+        document.getElementById('bgmiMaps').innerHTML = data.maps.map(m => `
+          <div class="map-card">
+            <div class="map-name">${m.name}</div>
+            <div class="map-size">${m.size}</div>
+            <div class="map-players">${m.max_players} players</div>
+            ${statusBadge(m.status)}
+          </div>
+        `).join('');
+      }
+
+      if (data.modes) {
+        document.getElementById('bgmiModes').innerHTML = data.modes.map(m =>
+          `<div class="stat-row"><span class="stat-label">${m.name}</span>${statusBadge(m.status)}${m.end_date ? `<span style="color:var(--text-muted);font-size:0.8em;margin-left:8px">ends ${m.end_date}</span>` : ''}</div>`
+        ).join('');
+      }
+
+      if (data.current_crate_events) {
+        document.getElementById('bgmiEvents').innerHTML = data.current_crate_events.map(e => `
+          <div class="event-item">
+            <div class="event-name">${e.name}</div>
+            <div class="event-dates">${e.start_date} → ${e.end_date}</div>
+            <div class="event-cost">${e.cost_per_open} per open · Guaranteed at ${e.guaranteed_at} opens</div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Load data
+    async function loadData() {
+      try {
+        const [mcResp, bgmiResp] = await Promise.all([
+          fetch('data/minecraft_bedrock.json').catch(() => null),
+          fetch('data/bgmi.json').catch(() => null)
+        ]);
+
+        if (mcResp?.ok) renderMinecraft(await mcResp.json());
+        else {
+          document.getElementById('mcLoading').innerHTML = '<div style="color:var(--red)">Failed to load Minecraft data</div>';
+        }
+
+        if (bgmiResp?.ok) renderBGMI(await bgmiResp.json());
+        else {
+          document.getElementById('bgmiLoading').innerHTML = '<div style="color:var(--red)">Failed to load BGMI data</div>';
+        }
+      } catch (e) {
+        console.error('Load error:', e);
+      }
+    }
+
+    loadData();
+  </script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+{
+  "game": "Minecraft Bedrock Edition",
+  "last_updated": "2026-08-24T10:00:00Z",
+  "current_version": "1.21.80",
+  "versions": [
+    {
+      "version": "1.21.80",
+      "release_date": "2026-08-15",
+      "type": "release",
+      "changes": [
+        "New Pale Garden biome with Creaking Heart block",
+        "Added Eyeblossom flower and Pale Oak wood set",
+        "New Creaking mob that spawns in Pale Gardens",
+        "Bundle of Bravery now available to all players",
+        "Performance improvements for chunk loading"
+      ],
+      "status": "stable"
+    },
+    {
+      "version": "1.21.70",
+      "release_date": "2026-06-20",
+      "type": "release",
+      "changes": [
+        "Added Happy Ghast mob and Ghastling",
+        "Dried Ghast block added to Nether",
+        "Harness item for riding Happy Ghast",
+        "New Player Locator Bar in HUD",
+        "Improved mob pathfinding"
+      ],
+      "status": "stable"
+    },
+    {
+      "version": "1.21.60",
+      "release_date": "2026-04-10",
+      "type": "release",
+      "changes": [
+        "Creaking Heart improvements",
+        "Pale Hanging Moss added",
+        "Bug fixes for redstone mechanics",
+        "Updated marketplace UI"
+      ],
+      "status": "stable"
+    },
+    {
+      "version": "1.21.50",
+      "release_date": "2026-02-05",
+      "type": "release",
+      "changes": [
+        "Winter Drop content",
+        "New cold-themed biomes",
+        "Iceologer mob added",
+        "Bundle crafting recipe updated"
+      ],
+      "status": "stable"
+    },
+    {
+      "version": "1.21.40",
+      "release_date": "2025-12-10",
+      "type": "release",
+      "changes": [
+        "Experimental features toggle improvements",
+        "Add-on API expansions",
+        "Render Dragon optimizations",
+        "Accessibility improvements"
+      ],
+      "status": "stable"
+    }
+  ],
+  "upcoming": {
+    "version": "1.22.0",
+    "expected_date": "2026-Q4",
+    "features_preview": [
+      "End dimension overhaul",
+      "New End biome and structures",
+      "Ender Dragon fight rework"
+    ]
+  },
+  "platforms": ["Windows 10/11", "Xbox", "PlayStation", "Nintendo Switch", "iOS", "Android", "Chromebook"],
+  "marketplace_stats": {
+    "total_addons": 8500,
+    "total_skin_packs": 3200,
+    "total_worlds": 4100,
+    "featured_this_week": 12
+  }
+}
