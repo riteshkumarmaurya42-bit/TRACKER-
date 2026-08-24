@@ -1,0 +1,128 @@
+{
+  "game": "BGMI (Battlegrounds Mobile India)",
+  "last_updated": "2026-08-24T10:00:00Z",
+  "current_version": "3.6.0",
+  "season": {
+    "number": 22,
+    "name": "Celestial Storm",
+    "start_date": "2026-07-15",
+    "end_date": "2026-09-15",
+    "rank_reset_date": "2026-09-16",
+    "tier_rewards": [
+      {"tier": "Bronze", "reward": "300 AG + Crate Coupon"},
+      {"tier": "Silver", "reward": "500 AG + Rename Card"},
+      {"tier": "Gold", "reward": "S22 Gold Parachute Skin"},
+      {"tier": "Platinum", "reward": "S22 Platinum Frame"},
+      {"tier": "Diamond", "reward": "S22 Diamond M416 Skin"},
+      {"tier": "Crown", "reward": "S22 Crown Set + Name Tag"},
+      {"tier": "Ace", "reward": "S22 Ace Outfit"},
+      {"tier": "Conqueror", "reward": "S22 Conqueror Title + Avatar Frame"}
+    ]
+  },
+  "current_crate_events": [
+    {
+      "name": "Celestial Guardian Crate",
+      "start_date": "2026-08-20",
+      "end_date": "2026-09-05",
+      "items": ["Celestial Guardian Set", "Celestial Guardian Headgear", "AUG - Celestial Skin"],
+      "cost_per_open": "60 UC",
+      "guaranteed_at": 10
+    },
+    {
+      "name": "Galaxy Wanderer Crate",
+      "start_date": "2026-08-18",
+      "end_date": "2026-09-01",
+      "items": ["Galaxy Wanderer Set", "DP-28 Galaxy Skin", "Galaxy Backpack"],
+      "cost_per_open": "80 UC",
+      "guaranteed_at": 10
+    }
+  ],
+  "maps": [
+    {
+      "name": "Erangel",
+      "size": "8x8 km",
+      "max_players": 100,
+      "status": "active",
+      "rotation": "always"
+    },
+    {
+      "name": "Miramar",
+      "size": "8x8 km",
+      "max_players": 100,
+      "status": "active",
+      "rotation": "always"
+    },
+    {
+      "name": "Sanhok",
+      "size": "4x4 km",
+      "max_players": 100,
+      "status": "active",
+      "rotation": "always"
+    },
+    {
+      "name": "Vikendi",
+      "size": "6x6 km",
+      "max_players": 100,
+      "status": "active",
+      "rotation": "always"
+    },
+    {
+      "name": "Livik",
+      "size": "2x2 km",
+      "max_players": 52,
+      "status": "active",
+      "rotation": "always"
+    },
+    {
+      "name": "Nusa",
+      "size": "1x1 km",
+      "max_players": 32,
+      "status": "active",
+      "rotation": "weekends"
+    },
+    {
+      "name": "Rondo",
+      "size": "8x8 km",
+      "max_players": 100,
+      "status": "active",
+      "rotation": "always"
+    }
+  ],
+  "modes": [
+    {"name": "Classic", "status": "active"},
+    {"name": "Arena", "status": "active"},
+    {"name": "Team Deathmatch", "status": "active"},
+    {"name": "Payload 2.0", "status": "limited_time", "end_date": "2026-09-01"},
+    {"name": "Zombie: Survive Till Dawn", "status": "limited_time", "end_date": "2026-08-30"},
+    {"name": "Metro Royale", "status": "active"},
+    {"name": "Ranked Arena", "status": "active"}
+  ],
+  "weapon_meta": {
+    "last_updated": "2026-08-24",
+    "top_weapons": [
+      {"name": "M416", "type": "AR", "tier": "S", "pick_rate": "78%"},
+      {"name": "AKM", "type": "AR", "tier": "A", "pick_rate": "62%"},
+      {"name": "AWM", "type": "Sniper", "tier": "S", "pick_rate": "45%"},
+      {"name": "M24", "type": "Sniper", "tier": "A", "pick_rate": "38%"},
+      {"name": "UMP45", "type": "SMG", "tier": "A", "pick_rate": "55%"},
+      {"name": "DP-28", "type": "LMG", "tier": "A", "pick_rate": "42%"},
+      {"name": "Kar98k", "type": "Sniper", "tier": "B", "pick_rate": "30%"},
+      {"name": "Mini14", "type": "DMR", "tier": "B", "pick_rate": "28%"}
+    ]
+  },
+  "esports": {
+    "upcoming_tournament": {
+      "name": "BGIS 2026 Grand Finals",
+      "date": "2026-09-20",
+      "venue": "Kolkata, India",
+      "prize_pool": "₹2,00,00,000",
+      "teams": 16
+    },
+    "recent_results": {
+      "tournament": "BMPS 2026 Season 2",
+      "winner": "Team Soul",
+      "runner_up": "GodLike Esports",
+      "mvp": "Jonathan"
+    }
+  }
+}
