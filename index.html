@@ -51,9 +51,17 @@
 
     header p { color: var(--text-muted); font-size: 1.05em; }
 
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
     .last-updated {
       display: inline-block;
-      margin-top: 12px;
       padding: 4px 12px;
       background: var(--surface2);
       border: 1px solid var(--border);
@@ -61,6 +69,38 @@
       font-size: 0.85em;
       color: var(--text-muted);
     }
+
+    .live-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      margin-right: 6px;
+      vertical-align: middle;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    .btn-refresh {
+      display: inline-block;
+      padding: 4px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-muted);
+      font-size: 0.85em;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .btn-refresh:hover { color: var(--text); border-color: var(--blue); }
+    .btn-refresh:disabled { opacity: 0.5; cursor: default; }
 
     .tabs {
       display: flex;
@@ -80,6 +120,7 @@
       font-weight: 600;
       border-bottom: 2px solid transparent;
       transition: all 0.2s;
+      font-family: inherit;
     }
 
     .tab:hover { color: var(--text); }
@@ -136,6 +177,57 @@
     .badge-blue { background: rgba(88, 166, 255, 0.15); color: var(--blue); }
     .badge-purple { background: rgba(188, 140, 255, 0.15); color: var(--purple); }
     .badge-orange { background: rgba(240, 136, 62, 0.15); color: var(--orange); }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.78em;
+      font-weight: 600;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .pill.live { background: rgba(63, 185, 80, 0.12); border-color: rgba(63, 185, 80, 0.35); color: var(--green); }
+    .pill.partial { background: rgba(210, 153, 34, 0.12); border-color: rgba(210, 153, 34, 0.35); color: var(--yellow); }
+    .pill.stale { background: rgba(248, 81, 73, 0.12); border-color: rgba(248, 81, 73, 0.35); color: var(--red); }
+
+    .pill .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: currentColor;
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+
+    .pill.live .dot { animation: none; }
+
+    .source-line {
+      padding: 6px 0;
+      border-bottom: 1px dashed var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-muted);
+      font-size: 0.82em;
+    }
+
+    .source-line:last-child { border-bottom: none; }
+
+    .source-line .ok { color: var(--green); }
+    .source-line .fail { color: var(--red); }
+
+    .error-box {
+      padding: 10px 14px;
+      border: 1px solid rgba(248, 81, 73, 0.4);
+      background: rgba(248, 81, 73, 0.08);
+      border-radius: 6px;
+      color: var(--red);
+      font-size: 0.9em;
+      margin-bottom: 18px;
+    }
 
     .version-list { list-style: none; }
 
@@ -258,6 +350,16 @@
     .tier-name { font-weight: 600; }
     .tier-prize { color: var(--text-muted); font-size: 0.85em; }
 
+    .news-headline {
+      padding: 6px 0;
+      color: var(--text-muted);
+      font-size: 0.9em;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .news-headline:last-child { border-bottom: none; }
+    .news-headline::before { content: "📰 "; }
+
     .loading {
       text-align: center;
       padding: 60px;
@@ -301,8 +403,14 @@
     <header>
       <h1>🎮 TRACKER</h1>
       <p>Minecraft Bedrock Edition + BGMI — Live Dashboard</p>
-      <div class="last-updated" id="lastUpdated">Loading...</div>
+      <div class="status-bar">
+        <span class="last-updated" id="lastUpdated">Loading…</span>
+        <span class="pill" id="dataQuality" title="How fresh the current data is"><span class="dot"></span> checking…</span>
+        <button class="btn-refresh" id="refreshBtn" onclick="forceRefresh()" title="Re-fetch the latest data files">⟳ Refresh now</button>
+      </div>
     </header>
+
+    <div id="globalError" class="error-box" style="display:none;"></div>
 
     <div class="tabs">
       <button class="tab active" onclick="switchTab('minecraft')">⛏️ Minecraft Bedrock</button>
@@ -313,13 +421,13 @@
     <div id="minecraft" class="tab-content active">
       <div class="loading" id="mcLoading">
         <div class="spinner"></div>
-        <div>Loading Minecraft data...</div>
+        <div>Loading Minecraft data…</div>
       </div>
       <div id="mcContent" style="display:none;">
         <div class="grid">
           <!-- Version Info -->
           <div class="card">
-            <h3><span class="icon">📦</span> Current Version</h3>
+            <h3><span class="icon">📦</span> Current Version <span class="pill live" id="mcLivePill"><span class="dot"></span> LIVE</span></h3>
             <div class="stat-row">
               <span class="stat-label">Version</span>
               <span class="stat-value" id="mcVersion">—</span>
@@ -331,6 +439,10 @@
             <div class="stat-row">
               <span class="stat-label">Platforms</span>
               <span class="stat-value" id="mcPlatforms">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Data source</span>
+              <span class="stat-value" id="mcSource" style="font-weight:400;color:var(--text-muted);font-size:0.85em;">—</span>
             </div>
           </div>
 
@@ -388,13 +500,13 @@
     <div id="bgmi" class="tab-content">
       <div class="loading" id="bgmiLoading">
         <div class="spinner"></div>
-        <div>Loading BGMI data...</div>
+        <div>Loading BGMI data…</div>
       </div>
       <div id="bgmiContent" style="display:none;">
         <div class="grid">
           <!-- Season Info -->
           <div class="card">
-            <h3><span class="icon">🏆</span> Current Season</h3>
+            <h3><span class="icon">🏆</span> Current Season <span class="pill live" id="bgmiLivePill"><span class="dot"></span> LIVE</span></h3>
             <div class="stat-row">
               <span class="stat-label">Season</span>
               <span class="stat-value" id="bgmiSeason">—</span>
@@ -411,6 +523,10 @@
               <span class="stat-label">Ends</span>
               <span class="stat-value" id="bgmiSeasonEnd">—</span>
             </div>
+            <div class="stat-row">
+              <span class="stat-label">Data source</span>
+              <span class="stat-value" id="bgmiSource" style="font-weight:400;color:var(--text-muted);font-size:0.85em;">—</span>
+            </div>
           </div>
 
           <!-- Esports -->
@@ -424,6 +540,12 @@
             <h3><span class="icon">📡</span> Server Status</h3>
             <div id="bgmiServers"></div>
           </div>
+        </div>
+
+        <!-- Latest News -->
+        <div class="card" style="margin-top:20px;">
+          <h3><span class="icon">📰</span> Latest from Official Site</h3>
+          <div id="bgmiNews"></div>
         </div>
 
         <!-- Weapon Meta -->
@@ -460,12 +582,18 @@
   </div>
 
   <footer>
-    <p>TRACKER- &mdash; Auto-updated via <a href="https://github.com/riteshkumarmaurya42-bit/TRACKER-/actions">GitHub Actions</a></p>
+    <p>TRACKER- &mdash; Auto-updated every 6 hours via <a href="https://github.com/riteshkumarmaurya42-bit/TRACKER-/actions">GitHub Actions</a> · Dashboard auto-refreshes every 60s</p>
     <p style="margin-top:4px;">Data sources: Minecraft Wiki &bull; Mojang Status API &bull; BGMI Official</p>
   </footer>
 
   <script>
     let mcData = null, bgmiData = null;
+    let refreshTimer = null;
+    const REFRESH_INTERVAL_MS = 60 * 1000; // poll for fresh data every 60s
+
+    // Cache-buster: GitHub Pages can cache JSON aggressively, so every fetch
+    // carries a unique query param.
+    const CACHE_BUST = () => `?t=${Date.now()}`;
 
     function switchTab(tab) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -475,12 +603,68 @@
     }
 
     function statusBadge(status) {
-      const map = { green: 'badge-green', yellow: 'badge-yellow', red: 'badge-red', stable: 'badge-green', active: 'badge-green', limited_time: 'badge-yellow' };
-      return `<span class="badge ${map[status] || 'badge-blue'}">${status}</span>`;
+      const map = {
+        green: 'badge-green', yellow: 'badge-yellow', red: 'badge-red',
+        stable: 'badge-green', active: 'badge-green',
+        limited_time: 'badge-yellow', reachable: 'badge-green',
+        unreachable: 'badge-red', unknown: 'badge-blue'
+      };
+      const label = String(status || 'unknown').replace(/_/g, ' ');
+      return `<span class="badge ${map[status] || 'badge-blue'}">${label}</span>`;
     }
 
     function formatNumber(n) {
-      return n ? n.toLocaleString() : '—';
+      return (n === null || n === undefined || n === '') ? '—' : Number(n).toLocaleString();
+    }
+
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    function timeAgo(iso) {
+      if (!iso) return 'never';
+      const t = new Date(iso).getTime();
+      if (isNaN(t)) return esc(iso);
+      const secs = Math.max(0, Math.floor((Date.now() - t) / 1000));
+      if (secs < 60) return `${secs}s ago`;
+      const mins = Math.floor(secs / 60);
+      if (mins < 60) return `${mins}m ago`;
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 48) return `${hrs}h ${mins % 60}m ago`;
+      const days = Math.floor(hrs / 24);
+      return `${days}d ago`;
+    }
+
+    function sourceLine(name, info) {
+      if (!info) return '';
+      const ok = info.ok;
+      const when = info.checked_at ? ` · ${timeAgo(info.checked_at)}` : '';
+      return `<div class="source-line"><span>${esc(name)}${when}</span>` +
+        (ok ? '<span class="ok">✓ live</span>' : `<span class="fail" title="${esc(info.error || '')}">✗ unreachable</span>`) +
+        '</div>';
+    }
+
+    function updateQualityPill() {
+      const qualities = [mcData && mcData.data_quality, bgmiData && bgmiData.data_quality].filter(Boolean);
+      const pill = document.getElementById('dataQuality');
+      if (!qualities.length) { pill.className = 'pill'; pill.innerHTML = '<span class="dot"></span> unknown'; return; }
+      const worst = qualities.includes('stale') ? 'stale' : (qualities.includes('partial') ? 'partial' : 'live');
+      const labels = { live: '● LIVE DATA', partial: '● PARTIAL DATA', stale: '● STALE DATA' };
+      pill.className = `pill ${worst}`;
+      pill.innerHTML = `<span class="dot"></span> ${labels[worst]}`;
+    }
+
+    function updateTicker() {
+      const el = document.getElementById('lastUpdated');
+      if (!el) return;
+      const stamps = [];
+      if (mcData) stamps.push(mcData.last_updated || mcData.last_attempt);
+      if (bgmiData) stamps.push(bgmiData.last_updated || bgmiData.last_attempt);
+      const latest = stamps.sort().pop();
+      if (!latest) { el.textContent = 'No data yet'; return; }
+      el.innerHTML = `<span class="live-dot"></span>Updated ${timeAgo(latest)} · ${new Date(latest).toLocaleString()}`;
     }
 
     function renderMinecraft(data) {
@@ -488,23 +672,28 @@
       document.getElementById('mcLoading').style.display = 'none';
       document.getElementById('mcContent').style.display = 'block';
 
-      document.getElementById('lastUpdated').textContent = `Last updated: ${new Date(data.last_updated).toLocaleString()}`;
+      const live = data.data_quality !== 'stale';
+      const pill = document.getElementById('mcLivePill');
+      pill.className = 'pill ' + (live ? 'live' : 'stale');
+      pill.innerHTML = `<span class="dot"></span> ${live ? 'LIVE' : 'STALE'}`;
+
       document.getElementById('mcVersion').textContent = data.current_version || '—';
 
       const latest = data.versions?.[0];
       document.getElementById('mcStatus').innerHTML = latest ? statusBadge(latest.status) : '—';
       document.getElementById('mcPlatforms').textContent = data.platforms?.length ? `${data.platforms.length} platforms` : '—';
+      document.getElementById('mcSource').textContent = `Minecraft Wiki API · ${timeAgo(data.sources?.minecraft_wiki?.checked_at || data.last_updated)}`;
 
       if (data.upcoming) {
         document.getElementById('mcNextVersion').textContent = data.upcoming.version || '—';
         document.getElementById('mcNextDate').textContent = data.upcoming.expected_date || '—';
-        if (data.upcoming.features_preview) {
+        if (data.upcoming.features_preview?.length) {
           document.getElementById('mcUpcomingFeatures').innerHTML = '<ul class="changes-list">' +
-            data.upcoming.features_preview.map(f => `<li>${f}</li>`).join('') + '</ul>';
+            data.upcoming.features_preview.map(f => `<li>${esc(f)}</li>`).join('') + '</ul>';
         }
       }
 
-      if (data.marketplace_stats) {
+      if (data.marketplace_stats && (data.marketplace_stats.total_addons != null)) {
         const ms = data.marketplace_stats;
         document.getElementById('mcAddons').textContent = formatNumber(ms.total_addons);
         document.getElementById('mcSkins').textContent = formatNumber(ms.total_skin_packs);
@@ -513,22 +702,31 @@
       }
 
       if (data.service_status) {
-        document.getElementById('mcServices').innerHTML = Object.entries(data.service_status).map(([name, status]) =>
-          `<div class="stat-row"><span class="stat-label">${name}</span>${statusBadge(status)}</div>`
+        const { checked_at, ...services } = data.service_status;
+        let html = Object.entries(services).map(([name, status]) =>
+          `<div class="stat-row"><span class="stat-label">${esc(name)}</span>${statusBadge(status)}</div>`
         ).join('');
+        if (checked_at) {
+          html += `<div class="source-line"><span>Mojang Status API · ${timeAgo(checked_at)}</span></div>`;
+        }
+        document.getElementById('mcServices').innerHTML = html;
+      } else {
+        document.getElementById('mcServices').innerHTML = '<div class="source-line">Not checked yet — first auto-update will probe services</div>';
       }
 
       if (data.versions) {
         document.getElementById('mcVersions').innerHTML = data.versions.map(v => `
           <li class="version-item">
             <div class="version-header">
-              <span class="version-number">v${v.version} ${statusBadge(v.status)}</span>
-              <span class="version-date">${v.release_date}</span>
+              <span class="version-number">v${esc(v.version)} ${statusBadge(v.status)}</span>
+              <span class="version-date">${esc(v.release_date)}</span>
             </div>
-            <ul class="changes-list">${(v.changes || []).map(c => `<li>${c}</li>`).join('')}</ul>
+            <ul class="changes-list">${(v.changes || []).map(c => `<li>${esc(c)}</li>`).join('')}</ul>
           </li>
         `).join('');
       }
+      updateQualityPill();
+      updateTicker();
     }
 
     function renderBGMI(data) {
@@ -536,68 +734,92 @@
       document.getElementById('bgmiLoading').style.display = 'none';
       document.getElementById('bgmiContent').style.display = 'block';
 
-      if (!mcData) {
-        document.getElementById('lastUpdated').textContent = `Last updated: ${new Date(data.last_updated).toLocaleString()}`;
-      }
+      const live = data.data_quality !== 'stale';
+      const pill = document.getElementById('bgmiLivePill');
+      pill.className = 'pill ' + (live ? 'live' : 'stale');
+      pill.innerHTML = `<span class="dot"></span> ${live ? 'LIVE' : 'STALE'}`;
 
       document.getElementById('bgmiVersion').textContent = data.current_version || '—';
+      document.getElementById('bgmiSource').textContent = `Battlegroundsmobileindia.com · ${timeAgo(data.sources?.official_site?.checked_at || data.last_updated)}`;
 
       if (data.season) {
-        document.getElementById('bgmiSeason').textContent = `S${data.season.number}`;
+        document.getElementById('bgmiSeason').textContent = data.season.number ? `S${data.season.number}` : '—';
         document.getElementById('bgmiSeasonName').textContent = data.season.name || '—';
         document.getElementById('bgmiSeasonEnd').textContent = data.season.end_date || '—';
 
-        if (data.season.tier_rewards) {
+        if (data.season.tier_rewards?.length) {
           document.getElementById('bgmiTiers').innerHTML = data.season.tier_rewards.map(t =>
-            `<div class="tier-reward"><span class="tier-name">${t.tier}</span><span class="tier-prize">${t.reward}</span></div>`
+            `<div class="tier-reward"><span class="tier-name">${esc(t.tier)}</span><span class="tier-prize">${esc(t.reward)}</span></div>`
           ).join('');
+        } else {
+          document.getElementById('bgmiTiers').innerHTML = '<div class="source-line">No tier data yet</div>';
         }
       }
 
       if (data.esports) {
         let html = '';
+        if (data.esports.recent_headline) {
+          html += `<div class="news-headline">${esc(data.esports.recent_headline)}</div>`;
+        }
         if (data.esports.upcoming_tournament) {
           const t = data.esports.upcoming_tournament;
           html += `<div class="esports-card">
-            <h3>📅 ${t.name}</h3>
-            <div class="stat-row"><span class="stat-label">Date</span><span class="stat-value">${t.date}</span></div>
-            <div class="stat-row"><span class="stat-label">Venue</span><span class="stat-value">${t.venue}</span></div>
-            <div class="stat-row"><span class="stat-label">Prize Pool</span><span class="stat-value" style="color:var(--yellow)">${t.prize_pool}</span></div>
-            <div class="stat-row"><span class="stat-label">Teams</span><span class="stat-value">${t.teams}</span></div>
+            <h3>📅 ${esc(t.name)}</h3>
+            <div class="stat-row"><span class="stat-label">Date</span><span class="stat-value">${esc(t.date)}</span></div>
+            <div class="stat-row"><span class="stat-label">Venue</span><span class="stat-value">${esc(t.venue)}</span></div>
+            <div class="stat-row"><span class="stat-label">Prize Pool</span><span class="stat-value" style="color:var(--yellow)">${esc(t.prize_pool)}</span></div>
+            <div class="stat-row"><span class="stat-label">Teams</span><span class="stat-value">${esc(t.teams)}</span></div>
           </div>`;
         }
         if (data.esports.recent_results) {
           const r = data.esports.recent_results;
-          html += `<div class="stat-row"><span class="stat-label">Last Winner</span><span class="stat-value">${r.winner}</span></div>`;
-          html += `<div class="stat-row"><span class="stat-label">Runner-up</span><span class="stat-value">${r.runner_up}</span></div>`;
-          html += `<div class="stat-row"><span class="stat-label">MVP</span><span class="stat-value">${r.mvp}</span></div>`;
+          html += `<div class="stat-row"><span class="stat-label">Last Winner</span><span class="stat-value">${esc(r.winner)}</span></div>`;
+          html += `<div class="stat-row"><span class="stat-label">Runner-up</span><span class="stat-value">${esc(r.runner_up)}</span></div>`;
+          html += `<div class="stat-row"><span class="stat-label">MVP</span><span class="stat-value">${esc(r.mvp)}</span></div>`;
         }
-        document.getElementById('bgmiEsports').innerHTML = html;
+        document.getElementById('bgmiEsports').innerHTML = html || '<div class="source-line">No esports data yet</div>';
       }
 
       if (data.server_status) {
-        document.getElementById('bgmiServers').innerHTML = Object.entries(data.server_status).map(([name, status]) =>
-          `<div class="stat-row"><span class="stat-label">${name.replace(/_/g, ' ')}</span>${statusBadge(status === 'reachable' ? 'green' : status === 'unreachable' ? 'red' : status)}</div>`
+        const { checked_at, ...servers } = data.server_status;
+        let html = Object.entries(servers).map(([name, status]) =>
+          `<div class="stat-row"><span class="stat-label">${esc(name.replace(/_/g, ' '))}</span>${statusBadge(status)}</div>`
         ).join('');
+        if (checked_at) {
+          html += `<div class="source-line"><span>Probed · ${timeAgo(checked_at)}</span></div>`;
+        }
+        document.getElementById('bgmiServers').innerHTML = html;
+      } else {
+        document.getElementById('bgmiServers').innerHTML = '<div class="source-line">Not checked yet — first auto-update will probe servers</div>';
+      }
+
+      if (data.news_headlines?.length) {
+        document.getElementById('bgmiNews').innerHTML = data.news_headlines.map(h =>
+          `<div class="news-headline">${esc(h)}</div>`
+        ).join('');
+      } else {
+        document.getElementById('bgmiNews').innerHTML = '<div class="source-line">No headlines yet — data updates every 6 hours</div>';
       }
 
       if (data.weapon_meta?.top_weapons) {
         document.getElementById('bgmiWeapons').innerHTML = data.weapon_meta.top_weapons.map(w => `
           <div class="weapon-row">
-            <span class="weapon-tier tier-${w.tier}">${w.tier}</span>
-            <span class="weapon-name">${w.name}</span>
-            <span class="weapon-type">${w.type}</span>
-            <span class="weapon-pick">${w.pick_rate}</span>
+            <span class="weapon-tier tier-${esc(w.tier)}">${esc(w.tier)}</span>
+            <span class="weapon-name">${esc(w.name)}</span>
+            <span class="weapon-type">${esc(w.type)}</span>
+            <span class="weapon-pick">${esc(w.pick_rate)}</span>
           </div>
         `).join('');
+      } else {
+        document.getElementById('bgmiWeapons').innerHTML = '<div class="source-line">No weapon meta yet</div>';
       }
 
       if (data.maps) {
         document.getElementById('bgmiMaps').innerHTML = data.maps.map(m => `
           <div class="map-card">
-            <div class="map-name">${m.name}</div>
-            <div class="map-size">${m.size}</div>
-            <div class="map-players">${m.max_players} players</div>
+            <div class="map-name">${esc(m.name)}</div>
+            <div class="map-size">${esc(m.size)}</div>
+            <div class="map-players">${esc(m.max_players)} players</div>
             ${statusBadge(m.status)}
           </div>
         `).join('');
@@ -605,44 +827,85 @@
 
       if (data.modes) {
         document.getElementById('bgmiModes').innerHTML = data.modes.map(m =>
-          `<div class="stat-row"><span class="stat-label">${m.name}</span>${statusBadge(m.status)}${m.end_date ? `<span style="color:var(--text-muted);font-size:0.8em;margin-left:8px">ends ${m.end_date}</span>` : ''}</div>`
+          `<div class="stat-row"><span class="stat-label">${esc(m.name)}</span>${statusBadge(m.status)}${m.end_date ? `<span style="color:var(--text-muted);font-size:0.8em;margin-left:8px">ends ${esc(m.end_date)}</span>` : ''}</div>`
         ).join('');
       }
 
-      if (data.current_crate_events) {
+      if (data.current_crate_events?.length) {
         document.getElementById('bgmiEvents').innerHTML = data.current_crate_events.map(e => `
           <div class="event-item">
-            <div class="event-name">${e.name}</div>
-            <div class="event-dates">${e.start_date} → ${e.end_date}</div>
-            <div class="event-cost">${e.cost_per_open} per open · Guaranteed at ${e.guaranteed_at} opens</div>
+            <div class="event-name">${esc(e.name)}</div>
+            <div class="event-dates">${esc(e.start_date)} → ${esc(e.end_date)}</div>
+            <div class="event-cost">${esc(e.cost_per_open)} per open · Guaranteed at ${esc(e.guaranteed_at)} opens</div>
           </div>
         `).join('');
+      } else {
+        document.getElementById('bgmiEvents').innerHTML = '<div class="source-line">No active events right now</div>';
       }
+
+      updateQualityPill();
+      updateTicker();
     }
 
-    // Load data
-    async function loadData() {
+    function showError(msg) {
+      const box = document.getElementById('globalError');
+      box.style.display = 'block';
+      box.textContent = msg;
+    }
+
+    function hideError() {
+      document.getElementById('globalError').style.display = 'none';
+    }
+
+    // Load (or refresh) data — always uses cache-busting URLs.
+    async function loadData(silent) {
+      const btn = document.getElementById('refreshBtn');
+      if (!silent && btn) { btn.disabled = true; btn.textContent = '⟳ Refreshing…'; }
       try {
         const [mcResp, bgmiResp] = await Promise.all([
-          fetch('data/minecraft_bedrock.json').catch(() => null),
-          fetch('data/bgmi.json').catch(() => null)
+          fetch('data/minecraft_bedrock.json' + CACHE_BUST()).catch(() => null),
+          fetch('data/bgmi.json' + CACHE_BUST()).catch(() => null)
         ]);
 
-        if (mcResp?.ok) renderMinecraft(await mcResp.json());
-        else {
+        let ok = false;
+        if (mcResp?.ok) { renderMinecraft(await mcResp.json()); ok = true; }
+        else if (!mcData) {
           document.getElementById('mcLoading').innerHTML = '<div style="color:var(--red)">Failed to load Minecraft data</div>';
         }
 
-        if (bgmiResp?.ok) renderBGMI(await bgmiResp.json());
-        else {
+        if (bgmiResp?.ok) { renderBGMI(await bgmiResp.json()); ok = true; }
+        else if (!bgmiData) {
           document.getElementById('bgmiLoading').innerHTML = '<div style="color:var(--red)">Failed to load BGMI data</div>';
         }
+
+        if (ok) hideError(); else showError('Could not reach the data files — is GitHub Pages deployed?');
       } catch (e) {
         console.error('Load error:', e);
+        showError('Error loading data: ' + e.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '⟳ Refresh now'; }
       }
     }
 
-    loadData();
+    function forceRefresh() {
+      loadData(false);
+    }
+
+    // Auto-refresh: re-fetch the JSON every 60s so new data pushed by
+    // GitHub Actions appears without a manual reload.
+    function startAutoRefresh() {
+      clearInterval(refreshTimer);
+      refreshTimer = setInterval(() => loadData(true), REFRESH_INTERVAL_MS);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') loadData(true);
+      });
+    }
+
+    // Keep the relative "x ago" times ticking every 30s.
+    setInterval(updateTicker, 30 * 1000);
+
+    loadData(false);
+    startAutoRefresh();
   </script>
 </body>
 </html>
