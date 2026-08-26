@@ -1,0 +1,58 @@
+name: Auto-Update Tracker Data
+
+on:
+  schedule:
+    # Every 6 hours (UTC)
+    - cron: "0 */6 * * *"
+  workflow_dispatch: # Manual trigger from the Actions tab
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run scrapers
+        run: python scrapers/update_all.py
+
+      - name: Verify data files
+        run: |
+          python - <<'EOF'
+          import json
+          for name in ("data/minecraft_bedrock.json", "data/bgmi.json"):
+              with open(name, encoding="utf-8") as f:
+                  data = json.load(f)
+              assert "last_attempt" in data, f"{name} missing last_attempt"
+              print(f"OK {name}: last_updated={data.get('last_updated')} quality={data.get('data_quality')}")
+          EOF
+
+      - name: Commit & push updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ scrapers/ README.md index.html
+          # Commit only if something actually changed
+          if git diff --cached --quiet; then
+            echo "No data changes — skipping commit"
+          else
+            git commit -m "chore: auto-update tracker data [skip ci]"
+            git push origin main
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
